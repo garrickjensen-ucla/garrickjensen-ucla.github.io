@@ -1,0 +1,593 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Garrick Jensen - deep learning and multi-agent reinforcement learning for robotics: world models, RF-silent coordination, and perception under degraded sensing.">
+<title>Garrick Jensen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap">
+
+<style>
+:root{
+  --paper:#FFFFFF;
+  --surface:#F7F8FA;
+  --ink:#0B0B0D;
+  --ink-2:#35383D;
+  --muted:#6E727A;
+  --rule:#E2E5EA;
+  --blue:#2774AE;
+  --blue-deep:#1D5A87;
+  --gold:#FFD100;
+  --gold-soft:#FFF6D0;
+  --blue-soft:#EAF1F8;
+  --wash:#F3F7FB;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0B0D10;
+    --surface:#14171C;
+    --ink:#EDEFF2;
+    --ink-2:#B7BCC4;
+    --muted:#7C828C;
+    --rule:#23272E;
+    --blue:#6BA5D6;
+    --blue-deep:#8FBFE4;
+    --gold:#FFD84D;
+    --gold-soft:#2A2410;
+    --blue-soft:#152232;
+    --wash:#0F141B;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0B0D10;
+  --surface:#14171C;
+  --ink:#EDEFF2;
+  --ink-2:#B7BCC4;
+  --muted:#7C828C;
+  --rule:#23272E;
+  --blue:#6BA5D6;
+  --blue-deep:#8FBFE4;
+  --gold:#FFD84D;
+  --gold-soft:#2A2410;
+  --blue-soft:#152232;
+  --wash:#0F141B;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Source Serif 4",Georgia,"Times New Roman",serif;
+  font-size:17px;line-height:1.62;-webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1000px;margin:0 auto;padding:0 28px}
+a{color:var(--blue)}
+a:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+code{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.88em}
+
+/* ---------- masthead ---------- */
+.top{position:relative;border-bottom:1px solid var(--rule);
+  background:linear-gradient(180deg,var(--wash) 0%,var(--paper) 92%)}
+.top::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;
+  background:linear-gradient(90deg,var(--blue) 0%,var(--blue) 62%,var(--gold) 62%,var(--gold) 100%)}
+.top-inner{padding:64px 0 46px;display:grid;grid-template-columns:1fr 172px;gap:44px;align-items:start}
+.eyebrow{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);margin:0 0 14px;
+}
+h1{
+  font-family:Archivo,"Helvetica Neue",Arial,sans-serif;
+  font-weight:700;font-size:clamp(38px,6.4vw,60px);line-height:1.02;
+  letter-spacing:-.026em;margin:0;text-wrap:balance;
+}
+.gold-rule{width:56px;height:4px;background:var(--gold);margin:18px 0 20px;border-radius:1px}
+.lede{font-size:clamp(17.5px,2vw,20px);color:var(--ink-2);max-width:58ch;margin:0}
+.portrait-slot{position:relative;width:172px;aspect-ratio:4/5;border:1px solid var(--rule);
+  border-radius:3px;overflow:hidden;background:var(--surface)}
+.portrait-slot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:9px;color:var(--muted)}
+.ph svg{width:46px;height:46px;opacity:.55}
+.ph span{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:10px;
+  letter-spacing:.12em;text-transform:uppercase}
+.edu{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:12.5px;line-height:1.85;
+  color:var(--muted);margin:20px 0 0;max-width:60ch}
+.links{display:flex;flex-wrap:wrap;gap:9px;margin-top:22px}
+.links a{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:13px;
+  text-decoration:none;color:var(--ink);
+  border:1px solid var(--rule);border-radius:2px;padding:7px 13px;background:var(--surface);
+  transition:border-color .15s,color .15s,background .15s;
+}
+.links a:hover,.links a:focus-visible{border-color:var(--blue);color:var(--blue);background:var(--paper)}
+
+/* ---------- sections ---------- */
+section{padding:58px 0;border-bottom:1px solid var(--rule)}
+section:last-of-type{border-bottom:0}
+.sec-head{
+  font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--blue);
+  margin:0 0 26px;padding-bottom:9px;border-bottom:2px solid var(--gold);display:inline-block;
+}
+h2{
+  font-family:Archivo,"Helvetica Neue",Arial,sans-serif;
+  font-weight:600;font-size:clamp(24px,3vw,31px);line-height:1.16;
+  letter-spacing:-.018em;margin:0 0 6px;text-wrap:balance;max-width:30ch;
+}
+h3{font-family:Archivo,"Helvetica Neue",Arial,sans-serif;
+  font-weight:600;font-size:19px;letter-spacing:-.01em;margin:0 0 4px}
+p{margin:0 0 16px;max-width:68ch}
+.role a,.rail a{color:var(--blue);text-decoration:none;border-bottom:1px solid var(--blue)}
+.role a:hover,.rail a:hover{color:var(--ink)}
+.role{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:13px;color:var(--muted);
+  margin:0 0 20px;line-height:1.65}
+
+.entry{display:grid;grid-template-columns:172px 1fr;gap:32px;align-items:start}
+.entry + .entry{margin-top:46px;padding-top:46px;border-top:1px solid var(--rule)}
+.rail{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:12.5px;
+  line-height:1.7;color:var(--muted);display:flex;flex-direction:column;gap:11px}
+.rail .when{color:var(--blue-deep)}
+.rail .tag{display:inline-block;font-size:11px;letter-spacing:.06em;
+  color:var(--blue-deep);background:var(--blue-soft);border:1px solid var(--blue-soft);
+  border-radius:2px;padding:3px 8px}
+ul{margin:0 0 16px;padding-left:18px;max-width:68ch}
+li{margin-bottom:7px}
+li::marker{color:var(--blue)}
+
+/* research aims: a real typed set of three studies, so they are numbered */
+.aims{list-style:none;padding:0;margin:6px 0 22px;max-width:70ch;
+  display:flex;flex-direction:column;gap:16px}
+.aims li{display:grid;grid-template-columns:34px 1fr;gap:14px;margin:0}
+.aims .num{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:12px;
+  font-variant-numeric:tabular-nums;color:var(--blue);padding-top:5px;letter-spacing:.04em}
+.aims .an{font-family:Archivo,sans-serif;font-weight:600;font-size:16px;display:block;margin-bottom:1px}
+
+figure{margin:24px 0;background:var(--blue-soft);border:1px solid var(--rule);
+  border-radius:3px;overflow:hidden}
+figure img{display:block;width:100%;height:auto;background:#fff}
+figcaption{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:12px;
+  line-height:1.6;color:var(--ink-2);padding:11px 15px;background:var(--blue-soft);
+  border-top:1px solid var(--rule)}
+.figrow{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+.figrow figure{margin:0;display:flex;flex-direction:column}
+.figrow figure figcaption{margin-top:auto}
+.figrow.photos img{aspect-ratio:4/5;object-fit:cover}
+.figrow.three{grid-template-columns:repeat(3,1fr);gap:14px}
+figure.narrow{max-width:330px}
+figure.vid video{display:block;width:100%;height:auto;background:#000}
+.figrow.demo{grid-template-columns:1fr 1fr;max-width:560px}
+figure{max-width:620px}
+.figrow figure{max-width:none}
+.figrow.mixed{grid-template-columns:1.75fr 1fr}
+.figrow.mixed img{height:330px;object-fit:contain}
+.scroll-x{overflow-x:auto}
+
+.status{border-left:3px solid var(--gold);background:var(--surface);
+  padding:12px 16px;margin:22px 0 0;border-radius:0 3px 3px 0;
+  font-size:15.5px;color:var(--ink-2);max-width:68ch}
+.status b{font-family:Archivo,sans-serif;font-weight:600;color:var(--ink)}
+
+.poster{border-left:3px solid var(--blue);padding:2px 0 2px 18px}
+.poster + .poster{margin-top:30px}
+.poster .t{font-family:Archivo,sans-serif;font-weight:600;font-size:18px;line-height:1.32;
+  letter-spacing:-.01em;margin-bottom:5px}
+.poster .t a{text-decoration:none;color:var(--ink);border-bottom:2px solid var(--gold)}
+.poster .t a:hover{color:var(--blue)}
+.poster .meta{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:12px;
+  color:var(--muted);line-height:1.65}
+.chip{display:inline-block;background:var(--gold-soft);color:var(--ink);
+  border:1px solid var(--gold);
+  font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.07em;
+  text-transform:uppercase;padding:2px 7px;border-radius:2px;margin-left:7px;vertical-align:2px}
+.chip.author{background:var(--blue-soft);border-color:var(--blue);color:var(--blue-deep)}
+
+.cites{list-style:none;padding:0;margin:0;max-width:none;display:flex;flex-direction:column}
+.cites li{display:grid;grid-template-columns:172px 1fr;gap:32px;margin:0;
+  padding:16px 0;border-top:1px solid var(--rule)}
+.cites li:first-child{border-top:0;padding-top:0}
+.cites .yr{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;
+  font-size:13px;color:var(--blue);padding-top:3px}
+.cites .c{font-size:16.5px;line-height:1.45}
+.cites .c > a{text-decoration:none;color:var(--ink);border-bottom:2px solid var(--gold)}
+.cites .c > a:hover{color:var(--blue)}
+.cites .shot{display:block;margin-top:14px;border:1px solid var(--rule);border-radius:3px;
+  overflow:hidden;background:#fff;transition:border-color .15s}
+.cites .shot:hover,.cites .shot:focus-visible{border-color:var(--blue)}
+.cites .shot img{display:block;width:100%;height:auto}
+.cites .shot.portrait{max-width:440px}
+.cites .v{display:block;margin-top:5px;font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:12px;line-height:1.65;color:var(--muted)}
+section[id]{scroll-margin-top:60px}
+
+/* narrow + medium: sticky bar across the top of the content */
+.sidenav{position:sticky;top:0;z-index:20;background:var(--paper);
+  border-bottom:1px solid var(--rule);margin-bottom:-1px}
+.sidenav ul{list-style:none;margin:0 auto;padding:0 28px;max-width:1000px;
+  display:flex;gap:22px;overflow-x:auto;scrollbar-width:none}
+.sidenav ul::-webkit-scrollbar{display:none}
+.sidenav li{margin:0;flex:0 0 auto}
+.sidenav a{display:block;padding:13px 0 11px;text-decoration:none;white-space:nowrap;
+  border-bottom:2px solid transparent;
+  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:11px;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
+  transition:color .15s,border-color .15s}
+.sidenav a:hover{color:var(--blue);border-bottom-color:var(--blue)}
+.sidenav a:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.sidenav a.active{color:var(--ink);border-bottom-color:var(--gold)}
+
+/* wide: move it into the left margin as a vertical rail */
+@media (min-width:1340px){
+  section[id]{scroll-margin-top:26px}
+  .sidenav{position:fixed;left:16px;top:50%;transform:translateY(-50%);
+    width:118px;z-index:5;background:none;border-bottom:0;margin-bottom:0}
+  .sidenav ul{flex-direction:column;gap:2px;padding:0;max-width:none;overflow:visible}
+  .sidenav a{padding:7px 0 7px 11px;border-bottom:0;border-left:2px solid var(--rule)}
+  .sidenav a:hover{border-left-color:var(--blue)}
+  .sidenav a.active{border-left-color:var(--gold)}
+}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+footer{position:relative;border-top:4px solid transparent;
+  border-image:linear-gradient(90deg,var(--gold) 0%,var(--gold) 38%,var(--blue) 38%,var(--blue) 100%) 1;
+  padding:36px 0 60px;font-family:"IBM Plex Mono",ui-monospace,monospace;
+  font-size:12.5px;color:var(--muted)}
+
+@media (max-width:760px){
+  .top-inner{grid-template-columns:1fr;gap:26px}
+  .portrait-slot{width:132px}
+  .entry{grid-template-columns:1fr;gap:14px}
+  .entry + .entry{margin-top:34px;padding-top:34px}
+  .figrow{grid-template-columns:1fr}
+  figure{max-width:none}
+  .figrow.three{grid-template-columns:1fr}
+  .figrow.demo{grid-template-columns:1fr;max-width:none}
+  .figrow.mixed{grid-template-columns:1fr}
+  .figrow.mixed img{height:auto}
+  h2{max-width:none}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+</head>
+<body>
+<header class="top">
+  <div class="wrap top-inner">
+    <div>
+      <p class="eyebrow">Robotics research · Los Angeles</p>
+      <h1>Garrick Jensen</h1>
+      <div class="gold-rule"></div>
+      <p class="lede">My passion is in robotic perception and autonomy research for extreme conditions, with the aim to create autonomous capabilities that can perceive, explore, and map dangerous environments unfit for people.</p>
+      <p class="edu">MS Mechanical Engineering · University of California, Los Angeles · expected 2028<br>
+      BS General Engineering · Harvey Mudd College · 2022, graduated with Distinction</p>
+      <nav class="links">
+        <a href="mailto:garrickjensen@gmail.com">garrickjensen@gmail.com</a>
+        <a href="https://www.linkedin.com/in/garrick-jensen-7144603993/">LinkedIn</a>
+        <a href="https://github.com/garrickjensen-ucla">GitHub</a>
+        <a href="Jensen_Garrick_Resume.pdf">Résumé (PDF)</a>
+      </nav>
+    </div>
+    <div class="portrait-slot">
+      <div class="ph" id="ph">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true">
+          <circle cx="12" cy="8.4" r="3.9"></circle>
+          <path d="M3.8 21c0-4.2 3.7-6.6 8.2-6.6s8.2 2.4 8.2 6.6"></path>
+        </svg>
+        <span>Photo</span>
+      </div>
+      <img src="photo.jpg" alt="Garrick Jensen"
+           onerror="this.remove()"
+           onload="var p=document.getElementById('ph'); if(p) p.remove();">
+    </div>
+  </div>
+</header>
+
+<main>
+<nav class="sidenav" aria-label="Sections">
+  <ul>
+    <li><a href="#research">Research</a></li>
+    <li><a href="#experience">Experience</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#publications">Publications</a></li>
+  </ul>
+</nav>
+
+<section class="wrap" id="research">
+  <p class="sec-head">Current research</p>
+  <div class="entry">
+    <div class="rail">
+      <div class="when">MS thesis, in progress</div>
+      <div><a href="https://vectr-ucla.github.io/">VECTR Laboratory</a>, UCLA</div>
+      <div>Advisor: Prof. Brett T. Lopez</div>
+    </div>
+    <div>
+  <h2>Embodied LiDAR Signaling for RF-Silent Multi-Robot Persistent Search and Revisit</h2>
+
+  <p>In mass-casualty incidents and search-and-rescue operations, initial assessment and triage are time constrained and often take place in dangerous, occluded environments. Autonomous robots are well suited to survey collapsed structures, disaster zones, and contested areas ahead of responders, but only if they can deploy without infrastructure, coordinate efficiently, and keep operating when communications are degraded or denied.</p>
+
+  <p>This thesis investigates whether a team of LiDAR-equipped aerial robots can cooperatively perform a persistent triage task, searching an unknown, obstructed, GPS- and radio-denied area for many casualties and repeatedly revisiting them for continuous health monitoring, coordinating only through a physical, LiDAR-based signaling channel and world-model-based reasoning.</p>
+
+  <figure>
+    <div class="scroll-x"><img src="img/lidar_sense.png" alt="Three panels showing simulated agents in a procedurally generated cave arena, each casting a LiDAR ray fan that stops at walls, with visible and hidden targets marked." loading="lazy"></div>
+    <figcaption>The triaging agents use a simulated LiDAR ray sweep against a procedural cave arena. Orange marks wall returns; open circles are patients or targets that have not been discovered by any agent.</figcaption>
+  </figure>
+
+  <p>This agent coordination problem was inspired by my work during the DARPA Triage Challenge, where setup was only allocated 20 minutes, required numerous cables and computers, and was prone to failure and gaps in communication. An autonomous drone could identify patient locations but lacked the ability to communicate them, interfering with our drones’ ability to coordinate with teaming robots. The communication infrastructure was time consuming, profoundly affected our UAV and UGV coordination and performance, and at times negated our autonomy during outages.</p>
+
+  <p>This research focuses on a physically grounded signaling-and-inference system for multi-agent coordination. Each robot carries retro-reflective markers that when switched periodically can encode a small discrete vocabulary as a temporal blink pattern visible to its teammates via LiDAR. I am investigating how a multi-agent deep reinforcement learning framework built on a DreamerV3-style Recurrent State-Space Model learns jointly to move, to signal, and to infer each observable teammate's intent from their observed signals and positions. I chose to use a model-based algorithm because encounters between teaming robots are sparse and therefore demand sample efficiency, and because its probabilistic latent can encode both its own localization and its teammates’ intents.</p>
+
+  
+
+  <p>A team of N robots with M patients/targets, where M is much greater than N, operate in a bounded, obstructed arena in grouped but initially unknown locations. Dividing revisit responsibility is encouraged when patients greatly outnumber agents.</p>
+
+      <figure>
+    <img src="img/target_discovery.png" alt="A cave arena with two agents, showing five of forty-seven targets discovered and the rest still unknown." loading="lazy">
+    <figcaption>Far more targets than robots. Each discovered casualty carries an idleness clock, so the team has to keep coming back rather than simply finding everything once.</figcaption>
+  </figure>
+
+      <p>Agents do not have access to GPS or other sensors that correct their true location state, and never share maps. Each agent has a privately built map that is subject to drift error. An agent discovering a patient is unshared information unless the agent is within view of another agent that can detect its signaling.</p>
+
+      <figure>
+    <div class="scroll-x"><img src="img/belief_vs_truth.png" alt="Side by side comparison of one agent's believed occupancy map against the true arena geometry, with true and estimated agent positions marked." loading="lazy"></div>
+    <figcaption>What one agent believes, next to what is actually there. Pose comes from a drift-injecting surrogate rather than ground truth, so the map smears the way a real one does when odometry is the only thing holding the frame together.</figcaption>
+  </figure>
+
+  
+    </div>
+  </div>
+</section>
+
+<section class="wrap" id="experience">
+  <p class="sec-head">Experience</p>
+
+  <div class="entry">
+    <div class="rail">
+      <div class="when">Aug 2022 – Dec 2026</div>
+      <div>Northridge, CA</div>
+      <div><span class="tag">Scientist 2</span></div>
+    </div>
+    <div>
+      <h3>Areté Associates</h3>
+
+      <p>As an algorithm and deep learning research engineer, I have worked with many different sensor modalities for various programs including underwater mine detection via water-penetrating LiDAR, high-dimensional searching for weak signals under time constraint via RL, and most of all autonomous triaging and vitals monitoring for mass casualty events.</p>
+      <p>For undersea mine detection I designed a novel DNN architecture that classifies spatial cubes with 2D transformers in place of 3D convolutions, working on undersea LiDAR from <a href="https://arete.com/products/pills/">PILLS</a>, Areté’s airborne Pushbroom Imaging LiDAR for Littoral Surveillance, reaching 0.97 AUC and beating 3D ResNeXt baselines at lower computational cost.</p>
+      <p>For autonomous robotic triaging, I worked on <a href="https://arete.com/products/aims/">AIMS</a>, Areté’s Automated Image-based Monitoring System, which locates and triages casualties from stand-off ranges on aerial and ground platforms. Specifically, I owned end-to-end training, validation and real-time deployment of joint human pose, body-part, and skin-segmentation models. Additionally I created robust algorithms for extracting heart and respiration rate information from FMCW radar and EO/IR imagery using real and Fourier-domain signal processing, for a multimodal non-contact vitals monitor.</p>
+      
+      <div class="figrow">
+        <figure>
+          <img src="aims_terrain.jpg" alt="Four aerial detection panels labelled Snow, Water, Grass and Desert, each with a person enclosed in a green detection box." loading="lazy">
+          <figcaption>The same detector across snow, water, grass and desert. Holding up as terrain and lighting change is the whole difficulty. Image: Areté Associates.</figcaption>
+        </figure>
+        <figure>
+          <img src="aims_ir.jpg" alt="Infrared aerial frame at night with a person on the ground enclosed in a green detection box." loading="lazy">
+          <figcaption>What it sees at night: a person detected in infrared from altitude. Image: Areté Associates.</figcaption>
+        </figure>
+      </div>
+
+      <div class="figrow">
+        <figure>
+          <img src="arete_skinseg.jpg" alt="Aerial view of a person lying in grass beside the network's segmentation mask isolating their exposed skin." loading="lazy">
+          <figcaption>Skin segmentation on a subject from drone imagery. Isolating exposed skin is what makes a usable vitals signal possible at range.</figcaption>
+        </figure>
+        <figure>
+          <img src="arete_ippg.jpg" alt="Signal processing flow: stacked segmented video frames, red green and blue pixel traces over time, and the recovered iPPG waveform." loading="lazy">
+          <figcaption>Segmented video to per-channel pixel traces to the recovered iPPG waveform, from which heart rate is read.</figcaption>
+        </figure>
+      </div>
+
+      <figure>
+        <img src="arete_gui.jpg" alt="Monitoring interface showing a simulated casualty, the vital extraction region, mapped wound locations, and live heart rate and respiration traces." loading="lazy">
+        <figcaption>The system running in real time on a simulated casualty: the extraction region, mapped wounds, and live heart and respiration traces at 51 fps.</figcaption>
+      </figure>
+
+      <p>In support of AIMS, I worked with medics and field-tested in simulated military exercises such as Project Capstone Convergence, Northern Strike, and competed in the DARPA Triage Challenge. I have had the opportunity to present results at the Military Health System Research Symposium for multiple years.</p>
+
+      <p>Lastly, I have worked on training reinforcement learning agents deployed on drones for time-constrained coverage optimization, searching for patients and then revisiting them. The reward makes the policy injury-aware: each patient's need to be revisited grows with time since the last visit, and grows faster the more severely they are injured.</p>
+
+      <div class="figrow">
+        <figure>
+          <img src="arete_rlarch.jpg" alt="Actor-critic architecture: an MLP over scalar inputs and a CNN over spatial inputs feed a shared extractor, then single-layer actor and critic heads." loading="lazy">
+          <figcaption>A shared extractor over scalar and spatial observations feeds single-layer actor and critic heads. The extractor is shared between the two; the weights are not.</figcaption>
+        </figure>
+        <figure>
+          <img src="arete_rlreward.jpg" alt="Four curves of injury severity weight against time, one per triage category, rising at different rates from a flat black line." loading="lazy">
+          <figcaption>The revisit reward by triage category. Red rises fastest, black stays flat, so the agent learns to prioritize the severely injured and never return to the dead.</figcaption>
+        </figure>
+      </div>
+
+      <figure>
+        <img src="arete_rldensity.jpg" alt="Density of contacts against distance for two headings, Straight and Right, with arrows tracing each back to the corresponding sweep across the scene below." loading="lazy">
+        <figcaption>The spatial observation. Each candidate heading is swept from the drone, contacts along it are collapsed into a density over distance, and those distributions are stacked into rows the CNN reads.</figcaption>
+      </figure>
+      <p class="role">Poster figures from my MHSRS presentations, Areté Associates.</p>
+    </div>
+  </div>
+
+  <div class="entry">
+    <div class="rail">
+      <div class="when">Aug 2021 – May 2022</div>
+      <div>West Fargo, ND</div>
+      <div><span class="tag">Team Lead</span></div>
+    </div>
+    <div>
+      <h3>Doosan Bobcat</h3>
+      <p class="role">Capstone Team Lead and Robotics Engineer</p>
+
+      <p>During my senior year capstone project at Harvey Mudd, I worked with Doosan Bobcat to create path planning and state estimation algorithms for an autonomous grass mower, meant to cover grass fields in a nice clean boustrophedon pattern. As team lead, I led a team of five students, set our agenda, managed our budget and group tasking, and liaised with Doosan, all alongside my technical work. I personally created a novel path planning algorithm for optimized boustrophedon curves using a modified traveling salesman problem, filed as <a href="https://patents.google.com/patent/WO2023205244A1/en">WO2023205244A1</a>. I also designed an Extended Kalman Filter utilizing radar and GPS data to perform localization, and implemented a particle filter for object detection and avoidance.</p>
+
+      <figure class="vid">
+        <video controls playsinline preload="none" poster="mower_poster.jpg">
+          <source src="mower_clip.mp4" type="video/mp4">
+          Your browser cannot play this video. <a href="mower_clip.mp4">Download it instead.</a>
+        </video>
+        <figcaption>The mower running the planned route autonomously at the Doosan Bobcat test field, sped up. Radar and GPS drive the Extended Kalman Filter holding the pose; the particle filter watches for obstacles.</figcaption>
+      </figure>
+
+      <p>My path planning work was focused on creating an optimized schema for decomposing a field that may have large obstacles such as buildings, water, and trees or shrubbery. The area is first divided into cells whose boundaries fall at the obstacles, so that each cell is a simple region a mower can sweep without turning around an obstruction. We would rotate the field to find orientations that minimized the number of cells that needed to be created. The cells are then ordered as a tour over their centers, and only inside each cell does the actual back-and-forth mowing pattern get generated.</p>
+
+      <div class="figrow three">
+        <figure>
+          <img src="patent_fig8.png" alt="Patent figure 8: the work area divided into nine cells with boundaries at two obstacles, and entry and exit points marked." loading="lazy">
+          <figcaption>Step one. Cell boundaries are placed where obstacles interrupt the field, leaving nine sweepable regions.</figcaption>
+        </figure>
+        <figure>
+          <img src="patent_fig9.png" alt="Patent figure 9: a work area decomposed into nine cells around two obstacles, with a dashed tour connecting the cell centers." loading="lazy">
+          <figcaption>Step two. The visit order over cell centers, solved as a modified traveling salesman problem.</figcaption>
+        </figure>
+        <figure>
+          <img src="patent_fig10.png" alt="Patent figure 10: back-and-forth boustrophedon sweep inside a single cell, with arrows showing travel direction." loading="lazy">
+          <figcaption>Step three. The boustrophedon sweep inside one cell, with turns joined by Dubins curves the vehicle can actually follow.</figcaption>
+        </figure>
+      </div>
+      <p class="role">Figures from WO2023205244A1, Doosan Bobcat North America.</p>
+
+      
+    </div>
+  </div>
+</section>
+
+<section class="wrap" id="projects">
+  <p class="sec-head">Selected projects</p>
+
+  <div class="entry">
+    <div class="rail">
+      <div class="when">Fall 2021</div>
+      <div>Motion Genesis · MATLAB</div>
+      <div>STM32 · Max1000 FPGA</div>
+    </div>
+    <div>
+      <h3>Multi-degree-of-freedom robotic arm</h3>
+      <p class="role">Rigid Body Dynamics × Microprocessor Systems and Design</p>
+
+      <p>In my senior year I combined the final projects for two different classes, one mechanical and one electrical, into a single design: a robotic arm that draws shapes. I started by modeling the dynamics of a three-segment arm with loop equations that would become the basis for solving the joint rotations. I wrote the loop equation for the marker tip across four reference frames, specified the target shape as a function of time, and solved the resulting system of nonlinear differential equations for the joint angles. Applying the angular momentum principle segment by segment gave the torque each motor would need.</p>
+
+      <div class="figrow">
+        <figure>
+          <img src="arm_geometry.jpg" alt="Diagram of the three-segment arm showing link lengths LA, LB and LC, the reference frames N, A, B and C, the joint angles qA, qB and qC, and the marker tip at point Q." loading="lazy">
+          <figcaption>Link lengths LA, LB, LC and joint angles q&#8339;, q&#8340;, q&#8331;, with the marker tip at Q. Four reference frames: the ground N and one per segment.</figcaption>
+        </figure>
+        <figure>
+          <img src="arm_equations.png" alt="The vector loop equation for the marker tip, and its three scalar components in x, y and z as nonlinear trigonometric equations in the joint angles." loading="lazy">
+          <figcaption>The loop equation closes on the marker tip, then projects onto each ground axis. Three nonlinear equations, three unknown joint angles.</figcaption>
+        </figure>
+      </div>
+
+      <figure>
+        <img src="arm_angles.png" alt="Three stacked plots of joint angle against time for motors A, B and C over a twenty second trace." loading="lazy">
+        <figcaption>The solve, run out over twenty seconds: the joint angles each motor must hold to trace a star in the y-z plane.</figcaption>
+      </figure>
+
+      <p>Driving three steppers so the motion looks simultaneous is a scheduling problem, since each motor can only take discrete steps. The controller computes how many minimum steps each joint needs for the current time slice, finds the largest, and interleaves the three by issuing each motor a step every <em>n</em>th iteration.</p>
+
+      <figure>
+        <div class="scroll-x"><img src="arm_electronics.png" alt="Hardware block diagram: a Max1000 FPGA reading a four-by-four keypad, talking to an STM32 over SPI, which drives three A4998 stepper drivers from a 30 volt supply." loading="lazy"></div>
+        <figcaption>The electronics. The FPGA scans the keypad matrix and hands the shape to the STM32 over SPI; the STM32 clocks STEP into three A4998 drivers, one per bipolar stepper, off a 30 V supply.</figcaption>
+      </figure>
+
+      
+
+      
+
+      <p>The original three-arm configuration was too heavy for the motors that we could afford within the project budget ($100 total). The model had treated the motors as point masses and left out the horizontal load path, and the real motors were heavier than assumed, so motor B could not raise motor C. The last-minute fix was to remove the third link, rewrite the loop equation for two arm segments, and swap the marker for a laser pointer.</p>
+
+      <div class="figrow demo">
+        <figure>
+        <img src="arm_two_segment.jpg" alt="The revised two-segment arm with a laser pointer mounted at the end instead of a marker." loading="lazy">
+        <figcaption>The revision: two segments, laser instead of marker.</figcaption>
+      </figure>
+        <figure class="vid">
+          <video controls playsinline preload="none" poster="arm_video_poster.jpg">
+            <source src="arm_clip.mp4" type="video/mp4">
+            Your browser cannot play this video. <a href="arm_clip.mp4">Download it instead.</a>
+          </video>
+          <figcaption>Demo day. The arm tracing a shape from keypad input, the two-segment build with the laser at the tip.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="wrap" id="publications">
+  <p class="sec-head">Patent and Poster Presentations</p>
+  <ul class="cites">
+    <li>
+      <div class="yr">2023</div>
+      <div class="c"><a href="https://patents.google.com/patent/WO2023205244A1/en">Path Planning for Automatic Mowers</a><span class="chip">Named inventor</span>
+        <span class="v">Schmidt, M., et al. Patent application WO2023205244A1, 26 Oct. 2023. Doosan Bobcat North America.</span></div>
+    </li>
+    <li>
+      <div class="yr">2026</div>
+      <div class="c"><a href="posters/MHSRS2026_RL_path_planning_mass_casualty.pdf">Reinforcement Learning Based Path Planning for Injury-Aware Mass Casualty Monitoring</a><span class="chip author">First author</span>
+        <span class="v">G. Jensen, R. Sato, R. Smith, W. Gushurst. Military Health System Research Symposium, Kissimmee, FL, August 2026.</span>
+        <a class="shot" href="posters/MHSRS2026_RL_path_planning_mass_casualty.pdf"><img src="posters/MHSRS2026_RL_path_planning_mass_casualty.jpg" alt="Conference poster: Reinforcement Learning Based Path Planning for Injury-Aware Mass Casualty Monitoring." loading="lazy"></a>
+      </div>
+    </li>
+    <li>
+      <div class="yr">2024</div>
+      <div class="c"><a href="posters/MHSRS2024_joint_human_skin_segmentation.pdf">Adapting Open-Source Artificial Intelligence to Combat Casualty Care: The Case Study of our Joint Human and Skin Segmentation Neural Network</a><span class="chip author">First author</span>
+        <span class="v">G. Jensen, K. Roman, J. Peel. Military Health System Research Symposium, Kissimmee, FL, August 2024.</span>
+        <a class="shot" href="posters/MHSRS2024_joint_human_skin_segmentation.pdf"><img src="posters/MHSRS2024_joint_human_skin_segmentation.jpg" alt="Conference poster: Adapting Open-Source Artificial Intelligence to Combat Casualty Care, joint human and skin segmentation." loading="lazy"></a></div>
+    </li>
+    <li>
+      <div class="yr">2024</div>
+      <div class="c"><a href="posters/MHSRS2024_HR_BP_perfusion.pdf">Image Based Extraction of Heart Rate, Blood Pressure and Perfusion Using Artificial Intelligence</a><span class="chip author">First author</span>
+        <span class="v">G. Jensen, J. Peel, K. Roman, N. Fisher, E. Quist. Military Health System Research Symposium, Kissimmee, FL, August 2024.</span>
+        <a class="shot" href="posters/MHSRS2024_HR_BP_perfusion.pdf"><img src="posters/MHSRS2024_HR_BP_perfusion.jpg" alt="Conference poster: Image Based Extraction of Heart Rate, Blood Pressure and Perfusion Using Artificial Intelligence." loading="lazy"></a>
+      </div>
+    </li>
+    <li>
+      <div class="yr">2023</div>
+      <div class="c">Non-Contact Methods of Measuring Heart and Respiratory Activity in Far-Forward Conditions Using Cameras
+        <span class="v">J. Peel, K. Roman, G. Jensen, J. Morris, N. Fisher, E. Quist. Military Health System Research Symposium, Kissimmee, FL, August 2023.</span></div>
+    </li>
+    <li>
+      <div class="yr">2023</div>
+      <div class="c"><a href="posters/MHSRS2023_wound_detection_full.jpg">Neural Networks for Wound Detection and Characterization in Automated Stand-Off Triage and Monitoring Systems: Lessons Learned and Results</a>
+        <span class="v">K. Roman, J. Morris, J. Peel, G. Jensen, N. Fisher, E. Quist. Military Health System Research Symposium, Kissimmee, FL, August 2023.</span>
+        <a class="shot" href="posters/MHSRS2023_wound_detection_full.jpg"><img src="posters/MHSRS2023_wound_detection.jpg" alt="Conference poster: Neural Networks for Wound Detection and Characterization in Automated Stand-off Triage and Monitoring Systems." loading="lazy"></a>
+      </div>
+    </li>
+    <li>
+      <div class="yr">2019</div>
+      <div class="c"><a href="posters/BMES2019_chitosan_nanoparticles.pdf">Controlled Production and Characterization of Chitosan Nanoparticles: Comparing Ionic Gelation and Ultrasonic Oscillation Methods</a><span class="chip author">First author</span>
+        <span class="v">G. Jensen, Y. Mahsud, E. Orwin. Biomedical Engineering Society Annual Meeting, Philadelphia, PA, October 2019.</span>
+        <a class="shot portrait" href="posters/BMES2019_chitosan_nanoparticles.pdf"><img src="posters/BMES2019_chitosan_nanoparticles.jpg" alt="Conference poster: Controlled Production and Characterization of Chitosan Nanoparticles." loading="lazy"></a>
+      </div>
+    </li>
+  </ul>
+</section>
+
+</main>
+
+<footer class="wrap">Garrick Jensen · Los Angeles, CA · garrickjensen@gmail.com</footer>
+
+<script>
+(function(){
+  var links = [].slice.call(document.querySelectorAll('.sidenav a'));
+  if(!links.length) return;
+  var map = {};
+  var sections = links.map(function(a){
+    var el = document.querySelector(a.getAttribute('href'));
+    if(el) map[el.id] = a;
+    return el;
+  }).filter(Boolean);
+  if(!sections.length) return;
+
+  function setActive(id){
+    links.forEach(function(a){ a.classList.toggle('active', a.getAttribute('href') === '#'+id); });
+  }
+
+  var io = new IntersectionObserver(function(entries){
+    var visible = entries.filter(function(e){ return e.isIntersecting; });
+    if(visible.length){
+      visible.sort(function(a,b){ return a.boundingClientRect.top - b.boundingClientRect.top; });
+      setActive(visible[0].target.id);
+    }
+  }, { rootMargin: '-15% 0px -70% 0px', threshold: 0 });
+
+  sections.forEach(function(el){ io.observe(el); });
+  setActive(sections[0].id);
+})();
+</script>
+
+</body>
+</html>
