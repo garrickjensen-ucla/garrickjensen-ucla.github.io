@@ -155,6 +155,7 @@ figcaption{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:12px;
 .figrow.photos img{aspect-ratio:4/5;object-fit:cover}
 .figrow.three{grid-template-columns:repeat(3,1fr);gap:14px}
 figure.narrow{max-width:330px}
+figure.wide{max-width:740px}
 figure.vid video{display:block;width:100%;height:auto;background:#000}
 .figrow.demo{grid-template-columns:1fr 1fr;max-width:560px}
 figure{max-width:620px}
@@ -315,7 +316,19 @@ footer{position:relative;border-top:4px solid transparent;
 
   <p>This research focuses on a physically grounded signaling-and-inference system for multi-agent coordination. Each robot carries retro-reflective markers that when switched periodically can encode a small discrete vocabulary as a temporal blink pattern visible to its teammates via LiDAR. I am investigating how a multi-agent deep reinforcement learning framework built on a DreamerV3-style Recurrent State-Space Model learns jointly to move, to signal, and to infer each observable teammate's intent from their observed signals and positions. I chose to use a model-based algorithm because encounters between teaming robots are sparse and therefore demand sample efficiency, and because its probabilistic latent can encode both its own localization and its teammates’ intents.</p>
 
-  
+  <p>How the channel is read and utilized for cooperation is bounded by detection theory. The initial probability of detecting teaming drones and their signals is simulated via expected SNR given the LiDAR and retro-reflector I chose. A retro-reflector return whose strength falls off with range drives a logistic law for whether a teammate’s marker is tracked at all, a stricter threshold for whether its blink code is decoded, and a confusion model for whether the decoded symbol is the right one. The parameters behind the probability of detection model are based on published measurements, and the beam-sampling term is measured by Monte Carlo against a simulated Ouster OS1 scan pattern.</p>
+
+  <figure class="wide">
+    <div class="scroll-x"><img src="img/channel_coverage.jpg" alt="Six panels: probability of detecting a teammate and probability of decoding its state, mapped over a fifty meter arena at zero and four meters per second of relative speed, with radial marginal curves alongside." loading="lazy"></div>
+    <figcaption>This figure explains the gap between an agent’s ability to track a teammate and its ability to read the signal that teammate is sending at different ranges. There is a bearing component because I model the retro-reflectors as eight circular cat’s-eye reflectors. At the best bearing tracking holds near 0.99 at 10 m and 0.92 at 20 m. Tracking is based on the observer’s ability to find even one LiDAR point that is reflected at a greater intensity across a window of time. Decoding <em>which</em> state a teammate is showing is already a coin flip by 6 to 7 m, because reading a precise signal frequency requires sustained observation over a time window and enough SNR for the true signal to stand out. An agent can therefore know where everyone is while receiving only intermittent information about signals. Dotted ring: 6m, casualty sensing radius. Dashed ring: 20 m, past which the simulator never raycasts teammate visibility at all.</figcaption>
+  </figure>
+
+  <figure class="wide">
+    <div class="scroll-x"><img src="img/channel_mc.jpg" alt="Two plots against closest approach distance: decoded signal to noise ratio over the decode window, and the percentage of scans returning at least one beam on the marker, each at two and four meters per second." loading="lazy"></div>
+    <figcaption>Signal SNR is not monotonic in range. It peaks near 3 m and falls off on both sides. Close in, noise grows with signal and fast movement drags the marker through several retro-reflective lobes inside the decode window. Vertical sampling also significantly limits detection at distance: a 10 cm reflector band at 20 m subtends 0.29° against 1.45° of channel spacing, so about four scans in five return nothing at all.</figcaption>
+  </figure>
+
+
 
   <p>A team of N robots with M patients/targets, where M is much greater than N, operate in a bounded, obstructed arena in grouped but initially unknown locations. Dividing revisit responsibility is encouraged when patients greatly outnumber agents.</p>
 
