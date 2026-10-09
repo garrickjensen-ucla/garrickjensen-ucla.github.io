@@ -146,6 +146,7 @@ li::marker{color:var(--blue)}
 figure{margin:24px 0;background:var(--blue-soft);border:1px solid var(--rule);
   border-radius:3px;overflow:hidden}
 figure img{display:block;width:100%;height:auto;background:#fff}
+figure svg{display:block;width:100%;height:auto;padding:14px 10px 6px;background:var(--blue-soft)}
 figcaption{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:12px;
   line-height:1.6;color:var(--ink-2);padding:11px 15px;background:var(--blue-soft);
   border-top:1px solid var(--rule)}
@@ -303,9 +304,9 @@ footer{position:relative;border-top:4px solid transparent;
     <div>
   <h2>Embodied LiDAR Signaling for RF-Silent Multi-Robot Persistent Search and Revisit</h2>
 
-  <p>In mass-casualty incidents and search-and-rescue operations, initial assessment and triage are time constrained and often take place in dangerous, occluded environments. Autonomous robots are well suited to survey collapsed structures, disaster zones, and contested areas ahead of responders, but only if they can deploy without infrastructure, coordinate efficiently, and keep operating when communications are degraded or denied.</p>
+  <p>In mass-casualty and search-and-rescue incidents, triage is time constrained and happens in dangerous, occluded places. Robots are well suited to survey them ahead of responders, but only if they deploy without infrastructure and keep working when communications are denied.</p>
 
-  <p>This thesis investigates whether a team of LiDAR-equipped aerial robots can cooperatively perform a persistent triage task, searching an unknown, obstructed, GPS- and radio-denied area for many casualties and repeatedly revisiting them for continuous health monitoring, coordinating only through a physical, LiDAR-based signaling channel and world-model-based reasoning.</p>
+  <p>This thesis focuses on how a team of LiDAR-equipped aerial robots can search a GPS- and radio-denied area for casualties and keep revisiting them to monitor their condition, coordinating through a physical signaling channel rather than radio, which removes the RF signature that enables geolocation. The research is centered on whether a decentralized, model-based learner can exploit a coordination signal that is sparse, short-range and frequently wrong. The signals and their detection are modeled using detection theory with the aim of being physically accurate, but not precise.</p>
 
   <figure>
     <div class="scroll-x"><img src="img/lidar_sense.png" alt="Three panels showing simulated agents in a procedurally generated cave arena, each casting a LiDAR ray fan that stops at walls, with visible and hidden targets marked." loading="lazy"></div>
@@ -314,37 +315,145 @@ footer{position:relative;border-top:4px solid transparent;
 
   <p>This agent coordination problem was inspired by my work during the DARPA Triage Challenge, where setup was only allocated 20 minutes, required numerous cables and computers, and was prone to failure and gaps in communication. An autonomous drone could identify patient locations but lacked the ability to communicate them, interfering with our drones’ ability to coordinate with teaming robots. The communication infrastructure was time consuming, profoundly affected our UAV and UGV coordination and performance, and at times negated our autonomy during outages.</p>
 
-  <p>This research focuses on a physically grounded signaling-and-inference system for multi-agent coordination. Each robot carries retro-reflective markers that when switched periodically can encode a small discrete vocabulary as a temporal blink pattern visible to its teammates via LiDAR. I am investigating how a multi-agent deep reinforcement learning framework built on a DreamerV3-style Recurrent State-Space Model learns jointly to move, to signal, and to infer each observable teammate's intent from their observed signals and positions. I chose to use a model-based algorithm because encounters between teaming robots are sparse and therefore demand sample efficiency, and because its probabilistic latent can encode both its own localization and its teammates’ intents.</p>
+  <p>The environment places N robots in a bounded, obstructed arena holding M casualties, M far greater than N, in grouped but initially unknown locations. At that ratio the team has to divide revisit responsibility rather than sweep together.</p>
 
-  <p>How the channel is read and utilized for cooperation is bounded by detection theory. The initial probability of detecting teaming drones and their signals is simulated via expected SNR given the LiDAR and retro-reflector I chose. A retro-reflector return whose strength falls off with range drives a logistic law for whether a teammate’s marker is tracked at all, a stricter threshold for whether its blink code is decoded, and a confusion model for whether the decoded symbol is the right one. The parameters behind the probability of detection model are based on published measurements, and the beam-sampling term is measured by Monte Carlo against a simulated Ouster OS1 scan pattern.</p>
-
-  <figure class="wide">
-    <div class="scroll-x"><img src="img/channel_coverage.jpg" alt="Six panels: probability of detecting a teammate and probability of decoding its state, mapped over a fifty meter arena at zero and four meters per second of relative speed, with radial marginal curves alongside." loading="lazy"></div>
-    <figcaption>This figure explains the gap between an agent’s ability to track a teammate and its ability to read the signal that teammate is sending at different ranges. There is a bearing component because I model the retro-reflectors as eight circular cat’s-eye reflectors. At the best bearing tracking holds near 0.99 at 10 m and 0.92 at 20 m. Tracking is based on the observer’s ability to find even one LiDAR point that is reflected at a greater intensity across a window of time. Decoding <em>which</em> state a teammate is showing is already a coin flip by 6 to 7 m, because reading a precise signal frequency requires sustained observation over a time window and enough SNR for the true signal to stand out. An agent can therefore know where everyone is while receiving only intermittent information about signals. Dotted ring: 6m, casualty sensing radius. Dashed ring: 20 m, past which the simulator never raycasts teammate visibility at all.</figcaption>
-  </figure>
-
-  <figure class="wide">
-    <div class="scroll-x"><img src="img/channel_mc.jpg" alt="Two plots against closest approach distance: decoded signal to noise ratio over the decode window, and the percentage of scans returning at least one beam on the marker, each at two and four meters per second." loading="lazy"></div>
-    <figcaption>Signal SNR is not monotonic in range. It peaks near 3 m and falls off on both sides. Close in, noise grows with signal and fast movement drags the marker through several retro-reflective lobes inside the decode window. Vertical sampling also significantly limits detection at distance: a 10 cm reflector band at 20 m subtends 0.29° against 1.45° of channel spacing, so about four scans in five return nothing at all.</figcaption>
-  </figure>
-
-
-
-  <p>A team of N robots with M patients/targets, where M is much greater than N, operate in a bounded, obstructed arena in grouped but initially unknown locations. Dividing revisit responsibility is encouraged when patients greatly outnumber agents.</p>
-
-      <figure>
+  <figure>
     <img src="img/target_discovery.png" alt="A cave arena with two agents, showing five of forty-seven targets discovered and the rest still unknown." loading="lazy">
     <figcaption>Far more targets than robots. Each discovered casualty carries an idleness clock, so the team has to keep coming back rather than simply finding everything once.</figcaption>
   </figure>
 
-      <p>Agents do not have access to GPS or other sensors that correct their true location state, and never share maps. Each agent has a privately built map that is subject to drift error. An agent discovering a patient is unshared information unless the agent is within view of another agent that can detect its signaling.</p>
+  <p>Agents have no GPS or any other correction on their true pose, never share maps, and each builds its own, subject to drift. A discovery stays private unless another agent is close enough to read the signal.</p>
 
-      <figure>
+  <figure>
     <div class="scroll-x"><img src="img/belief_vs_truth.png" alt="Side by side comparison of one agent's believed occupancy map against the true arena geometry, with true and estimated agent positions marked." loading="lazy"></div>
-    <figcaption>What one agent believes, next to what is actually there. Pose comes from a drift-injecting surrogate rather than ground truth, so the map smears the way a real one does when odometry is the only thing holding the frame together.</figcaption>
+    <figcaption>What one agent believes, next to what is actually there. Pose is imperfect: noise and bias are injected rather than passed through from ground truth.</figcaption>
   </figure>
 
-  
+  <p>The signal the training environment models is a switched retro-reflective band. “Blinking” at a fixed rate, it encodes a small discrete vocabulary into the LiDAR returns that can be decoded by teammates using Fourier analysis. The vocabulary is deterministic: a found-here beacon fires on discovering casualties no one has logged, an observing beacon on refreshing one that had gone stale. How well the channel carries is set by a detection model: an expected-SNR law determines the range and accuracy.</p>
+
+  <figure class="wide">
+<svg viewBox="0 0 790 410" role="img" aria-label="The signaling airframe and its switch. Left: a quadrotor with an Ouster OS1 lidar on a mast and a 300 mm retro-reflective band around the hull. Right: a cross-section through the band wall in three states. Open, the tape faces outward over the full height. Folding, the top and bottom quarters swing outward about their hinges. Closed, the quarters lie against the middle half with their absorbent backs facing out, so no tape is visible. Switching between open and closed at a fixed rate produces the blink pattern a teammate decodes over a 1.5 second window.">
+  <defs>
+    <marker id="fb-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="currentColor"/>
+    </marker>
+    <pattern id="fb-tape" width="7" height="7" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+      <rect width="7" height="7" fill="#FFD100"/>
+      <line x1="0" y1="0" x2="0" y2="7" stroke="#A98700" stroke-width="2.4"/>
+    </pattern>
+  </defs>
+
+  <g font-family="'IBM Plex Sans',Helvetica,Arial,sans-serif" font-size="11" fill="currentColor">
+
+    <!-- ===================== AIRFRAME ===================== -->
+    <g transform="translate(22,0)">
+    <rect x="106" y="54" width="28" height="24" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/>
+    <line x1="106" y1="66" x2="134" y2="66" stroke="currentColor" stroke-width="1" stroke-dasharray="2 2"/>
+    <rect x="116" y="78" width="8" height="64" fill="none" stroke="currentColor" stroke-width="1.4"/>
+    <text x="142" y="68" font-size="10.5" opacity=".75">Ouster OS1</text>
+
+    <line x1="84" y1="144" x2="38" y2="118" stroke="currentColor" stroke-width="2.2"/>
+    <line x1="156" y1="144" x2="202" y2="118" stroke="currentColor" stroke-width="2.2"/>
+    <rect x="31" y="106" width="14" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <rect x="195" y="106" width="14" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/>
+    <ellipse cx="38"  cy="104" rx="41" ry="4" fill="none" stroke="currentColor" stroke-width="1.6"/>
+    <ellipse cx="202" cy="104" rx="41" ry="4" fill="none" stroke="currentColor" stroke-width="1.6"/>
+
+    <line x1="100" y1="200" x2="82"  y2="286" stroke="currentColor" stroke-width="1.8"/>
+    <line x1="140" y1="200" x2="158" y2="286" stroke="currentColor" stroke-width="1.8"/>
+    <line x1="70"  y1="286" x2="94"  y2="286" stroke="currentColor" stroke-width="2.2"/>
+    <line x1="146" y1="286" x2="170" y2="286" stroke="currentColor" stroke-width="2.2"/>
+
+    <rect x="84" y="142" width="72" height="98" rx="3" fill="url(#fb-tape)" stroke="currentColor" stroke-width="1.6"/>
+    <line x1="60" y1="142" x2="60" y2="240" stroke="currentColor" stroke-width="1" marker-start="url(#fb-ar)" marker-end="url(#fb-ar)"/>
+    <text x="52" y="195" text-anchor="end" font-size="11" font-variant-numeric="tabular-nums">300 mm</text>
+
+    <text x="120" y="312" text-anchor="middle" font-size="10.5" opacity=".7">~500 mm class quadrotor</text>
+    </g>
+
+    <!-- ===================== FOLD, CROSS-SECTION ===================== -->
+    <text x="520" y="34" text-anchor="middle" font-size="11" font-weight="600" letter-spacing=".07em">SECTION THROUGH THE BAND WALL</text>
+
+    <!-- state 1 : open -->
+    <g>
+      <rect x="330" y="80" width="9"  height="150" fill="#6E767F" stroke="currentColor" stroke-width="1.2"/>
+      <rect x="339" y="80" width="7"  height="150" fill="url(#fb-tape)" stroke="currentColor" stroke-width="1.2"/>
+      <line x1="322" y1="117.5" x2="352" y2="117.5" stroke="currentColor" stroke-width="1" stroke-dasharray="3 2"/>
+      <line x1="322" y1="192.5" x2="352" y2="192.5" stroke="currentColor" stroke-width="1" stroke-dasharray="3 2"/>
+      <circle cx="330" cy="117.5" r="2.6" fill="currentColor"/>
+      <circle cx="330" cy="192.5" r="2.6" fill="currentColor"/>
+      <text x="316" y="102" text-anchor="end" font-size="10" opacity=".7">¼</text>
+      <text x="316" y="159" text-anchor="end" font-size="10" opacity=".7">½</text>
+      <text x="316" y="217" text-anchor="end" font-size="10" opacity=".7">¼</text>
+      <text x="337" y="254" text-anchor="middle" font-size="10.5" font-weight="600">open</text>
+      <text x="337" y="269" text-anchor="middle" font-size="10" opacity=".7">tape out</text>
+    </g>
+
+    <!-- state 2 : folding -->
+    <g>
+      <rect x="490" y="117.5" width="9" height="75" fill="#6E767F" stroke="currentColor" stroke-width="1.2"/>
+      <rect x="499" y="117.5" width="7" height="75" fill="url(#fb-tape)" stroke="currentColor" stroke-width="1.2"/>
+      <g transform="rotate(118 494.5 117.5)">
+        <rect x="490" y="80" width="9" height="37.5" fill="#6E767F" stroke="currentColor" stroke-width="1.2"/>
+        <rect x="499" y="80" width="7" height="37.5" fill="url(#fb-tape)" stroke="currentColor" stroke-width="1.2"/>
+      </g>
+      <g transform="rotate(-118 494.5 192.5)">
+        <rect x="490" y="192.5" width="9" height="37.5" fill="#6E767F" stroke="currentColor" stroke-width="1.2"/>
+        <rect x="499" y="192.5" width="7" height="37.5" fill="url(#fb-tape)" stroke="currentColor" stroke-width="1.2"/>
+      </g>
+      <path d="M494.5 86 A 31.5 31.5 0 0 1 522 133" fill="none" stroke="currentColor" stroke-width="1.3" marker-end="url(#fb-ar)"/>
+      <path d="M494.5 224 A 31.5 31.5 0 0 0 522 177" fill="none" stroke="currentColor" stroke-width="1.3" marker-end="url(#fb-ar)"/>
+      <circle cx="494.5" cy="117.5" r="2.6" fill="currentColor"/>
+      <circle cx="494.5" cy="192.5" r="2.6" fill="currentColor"/>
+      <text x="497" y="254" text-anchor="middle" font-size="10.5" font-weight="600">folding</text>
+      <text x="497" y="269" text-anchor="middle" font-size="10" opacity=".7">quarters swing out, 0.15 s</text>
+    </g>
+
+    <!-- state 3 : closed -->
+    <g>
+      <rect x="648" y="117.5" width="9" height="75" fill="#6E767F" stroke="currentColor" stroke-width="1.2"/>
+      <rect x="657" y="117.5" width="7" height="75" fill="url(#fb-tape)" stroke="currentColor" stroke-width="1.2"/>
+      <rect x="664" y="117.5" width="7" height="37.5" fill="url(#fb-tape)" stroke="currentColor" stroke-width="1.2"/>
+      <rect x="671" y="117.5" width="9" height="37.5" fill="#6E767F" stroke="currentColor" stroke-width="1.2"/>
+      <line x1="662" y1="155" x2="682" y2="155" stroke="currentColor" stroke-width="1.6"/>
+      <rect x="664" y="155"   width="7" height="37.5" fill="url(#fb-tape)" stroke="currentColor" stroke-width="1.2"/>
+      <rect x="671" y="155"   width="9" height="37.5" fill="#6E767F" stroke="currentColor" stroke-width="1.2"/>
+      <circle cx="648" cy="117.5" r="2.6" fill="currentColor"/>
+      <circle cx="648" cy="192.5" r="2.6" fill="currentColor"/>
+      <line x1="690" y1="117.5" x2="690" y2="192.5" stroke="currentColor" stroke-width="1" marker-start="url(#fb-ar)" marker-end="url(#fb-ar)"/>
+      <text x="698" y="158" font-size="10" opacity=".7">150 mm</text>
+      <text x="662" y="254" text-anchor="middle" font-size="10.5" font-weight="600">closed</text>
+      <text x="662" y="269" text-anchor="middle" font-size="10" opacity=".7">absorbent out, tape trapped</text>
+    </g>
+
+    <!-- key -->
+    <rect x="330" y="288" width="16" height="8" fill="url(#fb-tape)" stroke="currentColor" stroke-width="1"/>
+    <text x="352" y="296" font-size="10" opacity=".75">retro-reflective tape</text>
+    <rect x="470" y="288" width="16" height="8" fill="#6E767F" stroke="currentColor" stroke-width="1"/>
+    <text x="492" y="296" font-size="10" opacity=".75">absorbent backing</text>
+
+    <!-- ===================== BLINK ===================== -->
+    <line x1="330" y1="378" x2="760" y2="378" stroke="currentColor" stroke-width="1.2"/>
+    <polyline points="330,378 330,326 372,326 372,378 414,378 414,326 456,326 456,378 498,378 498,326 540,326 540,378 582,378 582,326 624,326 624,378 666,378 666,326 708,326 708,378 750,378 750,326 760,326"
+              fill="none" stroke="#C9A200" stroke-width="2.8" stroke-linejoin="round"/>
+    <text x="322" y="330" text-anchor="end" font-size="10" opacity=".7">open</text>
+    <text x="322" y="382" text-anchor="end" font-size="10" opacity=".7">closed</text>
+    <line x1="330" y1="316" x2="540" y2="316" stroke="currentColor" stroke-width="1" marker-start="url(#fb-ar)" marker-end="url(#fb-ar)" opacity=".7"/>
+    <text x="548" y="320" font-size="10" opacity=".75">1.5 s decode window — the rate is the symbol</text>
+  </g>
+</svg>
+    <figcaption>The modeled marker: tape on one face, absorbent backing on the other. Open it shows tape at every bearing; closed, the quarters fold back so only backing faces out. Blinking between the two is the signal. Proposed hardware, not yet built.</figcaption>
+  </figure>
+
+  <figure class="wide">
+    <div class="scroll-x"><img src="img/channel_coverage.jpg" alt="Six panels: probability of detecting a teammate and probability of decoding its state, mapped over a fifty meter arena at zero and four meters per second of relative speed, with radial marginal curves alongside." loading="lazy"></div>
+    <figcaption>What the learner has to cope with. A teammate can be tracked almost to the 20 m limit while what it is saying is unreadable past about 12 m, and past 8 m once the pair is closing at 4 m/s. Agents know where each other are far more often than they know what each other mean. Dotted ring: 6 m casualty sensing. Dashed: the simulator’s 20 m visibility limit.</figcaption>
+  </figure>
+
+  <p>The learner is a multi-agent deep reinforcement learning framework built on a DreamerV3-style Recurrent State-Space Model, trained to move and to infer each observable teammate’s intent from how it sees them act. I chose a model-based algorithm because encounters between robots are sparse, because the information it receives is environment-dependent and imperfect, and because its probabilistic latent can hold both an agent’s own localization and its teammates’ intents.</p>
+
+  <p>The aim is to measure how the signaling can affect teaming behavior. How much of the gap between a scripted patrol and an agent given perfect knowledge of the arena does a sparse, unreliable signal close? How much of that comes from the world model’s prediction of its teammates rather than from the signal alone? And how much of it survives when detection degrades, the geometry is unfamiliar, or the team is a size the agents never trained on?</p>
+
     </div>
   </div>
 </section>
