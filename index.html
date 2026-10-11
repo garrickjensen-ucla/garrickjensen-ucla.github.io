@@ -158,6 +158,7 @@ figcaption{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:12px;
 figure.narrow{max-width:330px}
 figure.wide{max-width:740px}
 figure.vid video{display:block;width:100%;height:auto;background:#000}
+figure.vid.tall{max-width:440px}
 .figrow.demo{grid-template-columns:1fr 1fr;max-width:560px}
 figure{max-width:620px}
 .figrow figure{max-width:none}
@@ -452,6 +453,14 @@ footer{position:relative;border-top:4px solid transparent;
   <p>The learner is a multi-agent deep reinforcement learning framework built on a DreamerV3-style Recurrent State-Space Model, trained to move and to infer each observable teammate’s intent from how it sees them act. I chose a model-based algorithm because encounters between robots are sparse, because the information it receives is environment-dependent and imperfect, and because its probabilistic latent can hold both an agent’s own localization and its teammates’ intents.</p>
 
   <p>The aim is to measure how the signaling can affect teaming behavior. How much of the gap between a scripted patrol and an agent given perfect knowledge of the arena does a sparse, unreliable signal close? How much of that comes from the world model’s prediction of its teammates rather than from the signal alone? And how much of it survives when detection degrades, the geometry is unfamiliar, or the team is a size the agents never trained on?</p>
+
+  <figure class="vid tall">
+    <video controls playsinline preload="none" poster="rollout_poster.jpg">
+      <source src="rollout_clip.mp4" type="video/mp4">
+      Your browser cannot play this video. <a href="rollout_clip.mp4">Download it instead.</a>
+    </video>
+    <figcaption>A trained policy on an evaluation episode, 1,000 steps. Two agents search the cave; discovered casualties are colored by idleness, green when fresh and red when stale. Rings show each agent’s signal state and stars mark revisit rewards. Below, reward per step with entropy, then cumulative reward.</figcaption>
+  </figure>
 
     </div>
   </div>
